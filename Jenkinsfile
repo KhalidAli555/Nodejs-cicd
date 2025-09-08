@@ -18,20 +18,23 @@ pipeline {
 
         stage('Build & Push Docker on Azure VM') {
             steps {
-                sshagent(['azure-vm-ssh']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no $AZURE_VM_USER@$AZURE_VM_HOST '
-                        cd ~/workspace
-                        git clone -b main https://github.com/KhalidAli555/Nodejs-cicd.git || cd Nodejs-cicd && git pull
-                        cd Nodejs-cicd
-                        docker build -t $DOCKER_IMAGE_DEV .
-                        docker tag $DOCKER_IMAGE_DEV $DOCKER_IMAGE_PROD
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push $DOCKER_IMAGE_DEV
-                        docker push $DOCKER_IMAGE_PROD
-                        docker logout
-                    '
-                    """
+                // Docker credentials ka block
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sshagent(['azure-vm-ssh']) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no $AZURE_VM_USER@$AZURE_VM_HOST '
+                            cd ~/workspace
+                            git clone -b main https://github.com/KhalidAli555/Nodejs-cicd.git || cd Nodejs-cicd && git pull
+                            cd Nodejs-cicd
+                            docker build -t $DOCKER_IMAGE_DEV .
+                            docker tag $DOCKER_IMAGE_DEV $DOCKER_IMAGE_PROD
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            docker push $DOCKER_IMAGE_DEV
+                            docker push $DOCKER_IMAGE_PROD
+                            docker logout
+                        '
+                        """
+                    }
                 }
             }
         }

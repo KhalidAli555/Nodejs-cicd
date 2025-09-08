@@ -10,7 +10,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/KhalidAli555/Nodejs-cicd.git'
+                git branch: "main", url: 'https://github.com/KhalidAli555/Nodejs-cicd.git'
             }
         }
 

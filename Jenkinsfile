@@ -43,7 +43,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
                     sh """
-                    export KUBECONFIG=$KUBECONFIG_FILE
+                    export KUBECONFIG=/var/jenkins_home/kubeconfig
                     kubectl apply -f database1-mysql.yml -n database1
                     kubectl get pods -n database1
                     """
@@ -55,7 +55,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
                     sh """
-                    export KUBECONFIG=$KUBECONFIG_FILE
+                    export KUBECONFIG=/var/jenkins_home/kubeconfig
                     kubectl apply -f dev1-deployment.yml -n dev1
                     kubectl get pods -n dev1
                     """
@@ -73,7 +73,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
                     sh """
-                    export KUBECONFIG=$KUBECONFIG_FILE
+                    export KUBECONFIG=/var/jenkins_home/kubeconfig
                     kubectl apply -f database1-mysql.yml -n database1
                     kubectl get pods -n database1
                     """
@@ -85,7 +85,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
                     sh """
-                    export KUBECONFIG=$KUBECONFIG_FILE
+                    export KUBECONFIG=/var/jenkins_home/kubeconfig
                     kubectl apply -f prod1-deployment.yml -n prod1
                     kubectl get pods -n prod1
                     """

@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nodejs-dev-pvc
+  namespace: dev1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-dev-deployment
+  namespace: dev1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejs-dev
+  template:
+    metadata:
+      labels:
+        app: nodejs-dev
+    spec:
+      containers:
+      - name: nodejs-dev
+        image: khalidali07/nodejs-app:dev
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - mountPath: "/usr/src/app/data"
+          name: nodejs-storage
+      volumes:
+      - name: nodejs-storage
+        persistentVolumeClaim:
+          claimName: nodejs-dev-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-dev-svc
+  namespace: dev1
+spec:
+  type: ClusterIP
+  selector:
+    app: nodejs-dev
+  ports:
+    - port: 3000
+      targetPort: 3000

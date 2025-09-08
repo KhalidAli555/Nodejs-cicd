@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_IMAGE_DEV  = "khalidali07/nodejs-app:dev-${env.BUILD_NUMBER}"
         DOCKER_IMAGE_PROD = "khalidali07/nodejs-app:prod-${env.BUILD_NUMBER}"
+        AZURE_VM_HOST     = "20.108.64.203"
+        AZURE_VM_USER     = "IKSCluster"
     }
 
     stages {
@@ -14,36 +16,34 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build & Push Docker on Azure VM') {
             steps {
-                sh "docker build -t $DOCKER_IMAGE_DEV ."
-                sh "docker tag $DOCKER_IMAGE_DEV $DOCKER_IMAGE_PROD"
-            }
-        }
-
-        stage('Login to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                sshagent(['azure-vm-ssh']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no $AZURE_VM_USER@$AZURE_VM_HOST '
+                        cd ~/workspace
+                        git clone -b main https://github.com/KhalidAli555/Nodejs-cicd.git || cd Nodejs-cicd && git pull
+                        cd Nodejs-cicd
+                        docker build -t $DOCKER_IMAGE_DEV .
+                        docker tag $DOCKER_IMAGE_DEV $DOCKER_IMAGE_PROD
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $DOCKER_IMAGE_DEV
+                        docker push $DOCKER_IMAGE_PROD
+                        docker logout
+                    '
+                    """
                 }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                sh "docker push $DOCKER_IMAGE_DEV"
-                sh "docker push $DOCKER_IMAGE_PROD"
             }
         }
 
         stage('Deploy Database to Dev') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
-                    sh '''
+                    sh """
                     export KUBECONFIG=$KUBECONFIG_FILE
                     kubectl apply -f database1-mysql.yml -n database1
                     kubectl get pods -n database1
-                    '''
+                    """
                 }
             }
         }
@@ -51,11 +51,11 @@ pipeline {
         stage('Deploy Node.js App to Dev') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
-                    sh '''
+                    sh """
                     export KUBECONFIG=$KUBECONFIG_FILE
                     kubectl apply -f dev1-deployment.yml -n dev1
                     kubectl get pods -n dev1
-                    '''
+                    """
                 }
             }
         }
@@ -69,11 +69,11 @@ pipeline {
         stage('Deploy Database to Prod') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
-                    sh '''
+                    sh """
                     export KUBECONFIG=$KUBECONFIG_FILE
                     kubectl apply -f database1-mysql.yml -n database1
                     kubectl get pods -n database1
-                    '''
+                    """
                 }
             }
         }
@@ -81,11 +81,11 @@ pipeline {
         stage('Deploy Node.js App to Prod') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
-                    sh '''
+                    sh """
                     export KUBECONFIG=$KUBECONFIG_FILE
                     kubectl apply -f prod1-deployment.yml -n prod1
                     kubectl get pods -n prod1
-                    '''
+                    """
                 }
             }
         }
@@ -95,9 +95,6 @@ pipeline {
     post {
         always {
             echo "✅ Full Pipeline completed"
-        }
-        cleanup {
-            sh 'docker logout'
         }
     }
 }

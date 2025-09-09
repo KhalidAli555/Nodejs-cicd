@@ -44,7 +44,7 @@ metadata:
   name: nodejs-dev-svc
   namespace: dev1
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: nodejs-dev
   ports:

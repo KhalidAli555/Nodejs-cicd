@@ -44,7 +44,7 @@ metadata:
   name: nodejs-prod-svc
   namespace: prod1
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: nodejs-prod
   ports:

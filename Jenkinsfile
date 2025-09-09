@@ -18,7 +18,6 @@ pipeline {
 
         stage('Build & Push Docker on Azure VM') {
             steps {
-                // Docker credentials ka block
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sshagent(['azure-vm-ssh']) {
                         sh """
@@ -26,7 +25,7 @@ pipeline {
                             cd ~/workspace
                             git clone -b main https://github.com/KhalidAli555/Nodejs-cicd.git || cd Nodejs-cicd && git pull
                             cd Nodejs-cicd
-                            docker build -t $DOCKER_IMAGE_DEV .
+                            docker build -t $DOCKER_IMAGE_DEV . 
                             docker tag $DOCKER_IMAGE_DEV $DOCKER_IMAGE_PROD
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                             docker push $DOCKER_IMAGE_DEV
@@ -57,6 +56,7 @@ pipeline {
                     sh """
                     export KUBECONFIG=/var/jenkins_home/kubeconfig_flat
                     kubectl apply -f dev1-deployment.yml -n dev1
+                    kubectl set image deployment/nodejs-dev-deployment nodejs-dev=$DOCKER_IMAGE_DEV -n dev1
                     kubectl get pods -n dev1
                     """
                 }
@@ -87,6 +87,7 @@ pipeline {
                     sh """
                     export KUBECONFIG=/var/jenkins_home/kubeconfig_flat
                     kubectl apply -f prod1-deployment.yml -n prod1
+                    kubectl set image deployment/nodejs-prod-deployment nodejs-prod=$DOCKER_IMAGE_PROD -n prod1
                     kubectl get pods -n prod1
                     """
                 }

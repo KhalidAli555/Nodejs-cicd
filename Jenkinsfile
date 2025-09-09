@@ -16,7 +16,7 @@ pipeline {
             }
         }
 
-        stage('Build & Push Docker on Azure VM') {
+        stage('Build & Push Image on Docker') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sshagent(['azure-vm-ssh']) {

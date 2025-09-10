@@ -5,12 +5,10 @@ metadata:
   namespace: dev1
 spec:
   accessModes:
-    - ReadWriteMany   # Change from ReadWriteOnce to ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
-  storageClassName: ibmc-file-gold   # Agar IBM Cloud IKS use kar rahe ho to RWX supported SC
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -18,7 +16,7 @@ metadata:
   name: nodejs-dev-deployment
   namespace: dev1
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: nodejs-dev

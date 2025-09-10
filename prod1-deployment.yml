@@ -5,11 +5,11 @@ metadata:
   namespace: prod1
 spec:
   accessModes:
-    - ReadWriteMany   # Change from ReadWriteOnce to ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
-  storageClassName: ibmc-file-gold   # IBM Cloud IKS me RWX supported storage class
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -17,7 +17,7 @@ metadata:
   name: nodejs-prod-deployment
   namespace: prod1
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: nodejs-prod

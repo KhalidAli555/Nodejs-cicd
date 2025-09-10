@@ -5,10 +5,11 @@ metadata:
   namespace: prod1
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany   # Change from ReadWriteOnce to ReadWriteMany
   resources:
     requests:
       storage: 1Gi
+  storageClassName: ibmc-file-gold   # IBM Cloud IKS me RWX supported storage class
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -16,7 +17,7 @@ metadata:
   name: nodejs-prod-deployment
   namespace: prod1
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: nodejs-prod
@@ -25,6 +26,8 @@ spec:
       labels:
         app: nodejs-prod
     spec:
+      nodeSelector:
+        env: worker2   # 👈 force prod pod on worker2
       containers:
       - name: nodejs-prod
         image: khalidali07/nodejs-app:prod
@@ -37,6 +40,7 @@ spec:
       - name: nodejs-storage
         persistentVolumeClaim:
           claimName: nodejs-prod-pvc
+
 ---
 apiVersion: v1
 kind: Service

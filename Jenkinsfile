@@ -38,7 +38,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Database In Database Namespace') {
+        stage('Deploy Database') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
                     sh """

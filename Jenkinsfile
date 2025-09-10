@@ -16,7 +16,7 @@ pipeline {
             }
         }
 
-        stage('Build & Push Docker on Azure VM') {
+        stage('Build & Push Image on Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sshagent(['azure-vm-ssh']) {
@@ -38,7 +38,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Database to Dev') {
+        stage('Deploy Database') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
                     sh """
@@ -66,18 +66,6 @@ pipeline {
         stage('Approval for Prod Deployment') {
             steps {
                 input message: "Approve deployment to PROD?"
-            }
-        }
-
-        stage('Deploy Database to Prod') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
-                    sh """
-                    export KUBECONFIG=/var/jenkins_home/kubeconfig_flat
-                    kubectl apply -f database1-mysql.yml -n database1
-                    kubectl get pods -n database1
-                    """
-                }
             }
         }
 
